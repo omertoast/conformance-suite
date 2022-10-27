@@ -10,6 +10,7 @@ import net.openid.conformance.plan.TestPlan;
 	testModules = {
 		// Normal well behaved client cases
 		OpenPaymentsQueryPaymentPointer.class,
+		OpenPaymentsRequestGrant.class
 	}
 )
 public class OpenPayments_TestPlan implements TestPlan {

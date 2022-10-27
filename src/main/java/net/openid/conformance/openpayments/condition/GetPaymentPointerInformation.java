@@ -23,38 +23,25 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class GetPaymentPointer extends AbstractCondition {
+public class GetPaymentPointerInformation extends AbstractCondition {
 
-	@Override
+@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = { "server", "discovery_endpoint_response" } )
+	@PostEnvironment(required = { "paymentPointer", "discovery_endpoint_response" } )
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("config")) {
 			throw error("Couldn't find a configuration");
 		}
 
-		String staticIssuer = env.getString("config", "server.issuer");
+		String paymentPointerUrl = env.getString("config", "paymentPointer.paymentPointerUrl");
 
-		if (!Strings.isNullOrEmpty(staticIssuer)) {
-			throw error("Test set to use dynamic server configuration but test configuration contains static server configuration", args("issuer", staticIssuer));
-		}
-
-		String discoveryUrl = env.getString("config", "server.discoveryUrl");
-
-		if (Strings.isNullOrEmpty(discoveryUrl)) {
-
-			String iss = env.getString("config", "server.discoveryIssuer");
-			discoveryUrl = iss + "/.well-known/openid-configuration";
-
-			if (Strings.isNullOrEmpty(iss)) {
-				throw error("Couldn't find discoveryUrl or discoveryIssuer field for discovery purposes");
-			}
-
+		if (Strings.isNullOrEmpty(paymentPointerUrl)) {
+			throw error("Couldn't find paymentPointerUrl field for discovery purposes");
 		}
 
 		// get out the server configuration component
-		if (!Strings.isNullOrEmpty(discoveryUrl)) {
+		if (!Strings.isNullOrEmpty(paymentPointerUrl)) {
 			// do an auto-discovery here
 
 			// fetch the value
@@ -63,8 +50,8 @@ public class GetPaymentPointer extends AbstractCondition {
 				RestTemplate restTemplate = createRestTemplate(env);
 				// add host header to request
 				HttpHeaders headers = new HttpHeaders();
-				headers.add("Host", "peer-backend");
-				ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+				headers.add("Host", "backend");
+				ResponseEntity<String> response = restTemplate.exchange(paymentPointerUrl, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 				JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
 
 				env.putObject("discovery_endpoint_response", responseInfo);
@@ -73,7 +60,7 @@ public class GetPaymentPointer extends AbstractCondition {
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
 			} catch (RestClientException e) {
-				String msg = "Unable to fetch server configuration from " + discoveryUrl;
+				String msg = "Unable to fetch public information from " + paymentPointerUrl;
 				if (e.getCause() != null) {
 					msg += " - " +e.getCause().getMessage();
 				}
@@ -82,11 +69,11 @@ public class GetPaymentPointer extends AbstractCondition {
 
 			if (!Strings.isNullOrEmpty(jsonString)) {
 				try {
-					JsonObject serverConfig = JsonParser.parseString(jsonString).getAsJsonObject();
+					JsonObject paymentPointer = JsonParser.parseString(jsonString).getAsJsonObject();
 
-					logSuccess("Successfully parsed server configuration", serverConfig);
+					logSuccess("Successfully parsed payment pointer", paymentPointer);
 
-					env.putObject("server", serverConfig);
+					env.putObject("paymentPointer", paymentPointer);
 
 					return env;
 				} catch (JsonSyntaxException e) {
@@ -94,7 +81,7 @@ public class GetPaymentPointer extends AbstractCondition {
 				}
 
 			} else {
-				throw error("empty server configuration");
+				throw error("empty paymentPointer configuration");
 			}
 
 		} else {

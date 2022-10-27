@@ -4,7 +4,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
-import net.openid.conformance.openpayments.condition.GetPaymentPointer;
+import net.openid.conformance.openpayments.condition.CheckAuthServerUri;
+import net.openid.conformance.openpayments.condition.CheckPaymentPointerAssetScale;
+import net.openid.conformance.openpayments.condition.CheckPaymentPointerId;
+import net.openid.conformance.openpayments.condition.GetPaymentPointerInformation;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -14,7 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test ensures that the server's configuration (including scopes, response_types, grant_types etc) contains values required by the specification",
 	profile = "openpaymentstest",
 	configurationFields = {
-		"server.discoveryUrl",
+		"server.paymentPointerUrl",
 	}
 )
 public class OpenPaymentsQueryPaymentPointer extends AbstractTestModule {
@@ -24,9 +27,12 @@ public class OpenPaymentsQueryPaymentPointer extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.putObject("config", config);
 
-		callAndStopOnFailure(GetPaymentPointer.class);
-		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
-		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
+		callAndStopOnFailure(GetPaymentPointerInformation.class);
+		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckAuthServerUri.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckPaymentPointerId.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckPaymentPointerAssetScale.class, Condition.ConditionResult.FAILURE);
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 }

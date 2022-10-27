@@ -1,12 +1,12 @@
-package net.openid.conformance.condition.client;
+package net.openid.conformance.openpayments.condition.paymentpointer;
 
-import com.google.gson.JsonElement;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+	import com.google.gson.JsonElement;
+	import net.openid.conformance.condition.AbstractCondition;
+	import net.openid.conformance.testmodule.Environment;
+	import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+	import java.net.MalformedURLException;
+	import java.net.URL;
 
 public abstract class AbstractJsonUriIsValidAndHttps extends AbstractCondition {
 
@@ -25,7 +25,7 @@ public abstract class AbstractJsonUriIsValidAndHttps extends AbstractCondition {
 		if ( ServerValue != null) {
 			return ServerValue;
 		} else {
-			JsonElement serverValue = env.getElementFromObject("server", environmentVariable);
+			JsonElement serverValue = env.getElementFromObject("paymentPointer", environmentVariable);
 
 			if (serverValue == null) {
 				throw error(environmentVariable + ": URL not found");
